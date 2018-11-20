@@ -1,0 +1,23 @@
+version: "2"
+
+services:
+  myapp:
+    build: ../.
+    volumes:
+        - ../docker/supervisord.conf:/etc/supervisord.conf
+    ports:
+      - "8082:8082"
+    links:
+      - mysql
+    working_dir: /go/src/github.com/vlam1/acceptance_test_example
+    command: "go run ./cmd/myapp/main.go"
+
+  mysql:
+    image: mysql
+    volumes:
+      - ./dbDump/test.sql:/docker-entrypoint-initdb.d/test.sql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: "test"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
