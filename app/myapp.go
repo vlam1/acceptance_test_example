@@ -1,6 +1,7 @@
 package myapp
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -21,11 +22,32 @@ func NewServer(c config.Configuration) *Server {
 	}
 }
 
+func (srv *Server) handleWrite(w http.ResponseWriter, r *http.Request) {
+	err := srv.db.WriteSomething()
+	if err != nil {
+		fmt.Fprintf(w, "unable to write to db: %s\n", err.Error())
+		return
+	}
+
+	// irl, you would probably want to return something in json format
+	fmt.Fprintln(w, "success")
+}
+func (srv *Server) handleGet(w http.ResponseWriter, r *http.Request) {
+	id, err := srv.db.GetIDs()
+	if err != nil {
+		fmt.Fprintf(w, "unable to read from db: %s\n", err.Error())
+		return
+	}
+	fmt.Fprintf(w, "success: id=%d\n", id)
+}
+
 // Start the service
 func (srv *Server) Start() {
 	defer srv.disconnectDB()
 	log.Println("started service: myapp")
 
+	http.HandleFunc("/write", srv.handleWrite)
+	http.HandleFunc("/get", srv.handleGet)
 	http.ListenAndServe(":8081", nil)
 }
 

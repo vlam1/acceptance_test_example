@@ -39,29 +39,31 @@ func NewDBClient(c config.Configuration) *Client {
 }
 
 // WriteSomething to the DB
-func (db *Client) WriteSomething(someText string) error {
+func (db *Client) WriteSomething() error {
 	//simple insert statment
 	// irl, you would want something like proxysql as an
 	// abstraction layer to set up your rules and
 	// use prepare statement and other things to prevent
 	// sql injection
-	stmt := "INSERT IGNORE INTO test_table (txt) VALUES ('?')"
-	_, err := db.Conn.Exec(stmt, someText)
+	stmt := "INSERT IGNORE INTO test.test_table (txt) VALUES ('something')"
+	_, err := db.Conn.Exec(stmt)
 	return err
 }
 
 // GetIDs from the DB based on that field
-func (db *Client) GetIDs(someText string) (int, error) {
-	stmt := "SELECT * FROM test_table WHERE txt='?'"
-	res, err := db.Conn.Query(stmt, someText)
+func (db *Client) GetIDs() (int, error) {
+	stmt := "SELECT id FROM test.test_table WHERE txt='something'"
+	res, err := db.Conn.Query(stmt)
 	if err != nil {
 		return -1, err
 	}
 
 	var id int
-	err = res.Scan(&id)
-	if err != nil {
-		return -1, err
+	for res.Next() {
+		err = res.Scan(&id)
+		if err != nil {
+			return -1, err
+		}
 	}
 
 	return id, nil
